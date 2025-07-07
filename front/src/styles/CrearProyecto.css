@@ -1,0 +1,63 @@
+.crear-proyecto-container {
+    max-width: 600px;
+    margin: auto;
+  }
+  
+  .crear-proyecto-title {
+    margin-bottom: 10px;
+  }
+  
+  .crear-proyecto-chatbox {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    height: 300px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+  }
+  
+  .crear-proyecto-message {
+    margin: 5px 0;
+  }
+  
+  .crear-proyecto-message.user {
+    text-align: right;
+  }
+  
+  .crear-proyecto-message.bot {
+    text-align: left;
+  }
+  
+  .crear-proyecto-bubble {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 20px;
+    max-width: 80%;
+  }
+  
+  .crear-proyecto-bubble.user {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .crear-proyecto-bubble.bot {
+    background-color: #e0e0e0;
+    color: black;
+  }
+  
+  .crear-proyecto-textarea {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    resize: vertical;
+    min-height: 48px;
+  }
+  
+  .crear-proyecto-button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  

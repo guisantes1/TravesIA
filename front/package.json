@@ -1,0 +1,33 @@
+{
+  "name": "front",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack serve --mode development --open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "gpxparser": "^3.0.8",
+    "leaflet": "^1.9.4",
+    "react": "^19.1.0",
+    "react-datepicker": "^8.4.0",
+    "react-dom": "^19.1.0",
+    "react-dropzone": "^14.3.8",
+    "react-leaflet": "^5.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-react": "^7.27.1",
+    "babel-loader": "^10.0.0",
+    "css-loader": "^7.1.2",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
+  }
+}

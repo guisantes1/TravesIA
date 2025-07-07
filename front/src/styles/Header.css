@@ -1,0 +1,26 @@
+.header {
+    position: fixed;
+    top: 0;
+    right: 0;
+    background-color: #111;
+    color: white;
+    padding: 10px 20px;
+    font-family: Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 1000;
+  }
+  
+  .header a {
+    color: #1e90ff;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: normal;
+    font-size: 14px;
+  }
+  
+  .header a:hover {
+    text-decoration: underline;
+  }
+  
