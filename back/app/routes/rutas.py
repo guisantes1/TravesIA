@@ -5,7 +5,7 @@ from app import models, schemas
 
 router = APIRouter()
 
-@router.post("/rutas/", response_model=schemas.Ruta)
+@router.post("/rutas/", response_model=schemas.RutaOut)
 def create_ruta(ruta: schemas.RutaCreate, db: Session = Depends(get_db)):
     db_ruta = models.Ruta(
         nombre=ruta.nombre,
@@ -17,7 +17,6 @@ def create_ruta(ruta: schemas.RutaCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_ruta)
     return db_ruta
-
 
 @router.get("/rutas/{ruta_id}", response_model=schemas.RutaOut)
 def read_ruta(ruta_id: int, db: Session = Depends(get_db)):

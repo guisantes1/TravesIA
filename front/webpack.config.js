@@ -9,10 +9,22 @@ module.exports = {
   },
   mode: 'development',
   devServer: {
-    static: './public',
-    historyApiFallback: true,
+    static: {
+      directory: path.join(__dirname, 'public'),
+      publicPath: '/',
+    },
+    historyApiFallback: {
+      disableDotRule: true,
+      index: '/index.html',
+    },
     port: 3000,
+    watchFiles: {
+      paths: ['src/**/*', 'public/**/*'],
+      options: { usePolling: false },
+    },
   },
+  
+  
   module: {
     rules: [
       {

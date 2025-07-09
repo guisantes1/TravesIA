@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useEffect } from 'react';
+import { useMap } from 'react-leaflet';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -8,6 +10,10 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 import '../styles/SubirGPX.css';
+
+import SubirGPX_Dropzone from './SubirGPX_funciones/SubirGPX_Dropzone';
+import SubirGPX_Mapa from './SubirGPX_funciones/SubirGPX_Mapa';
+
 
 const icon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
@@ -34,6 +40,8 @@ export default function SubirGPX() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedWaypoint, setSelectedWaypoint] = useState(null);
   const [waypointForm, setWaypointForm] = useState({ type: "", photos: [], description: "" });
+  const [rutaDescripcion, setRutaDescripcion] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const onDrop = useCallback(acceptedFiles => {
     if (acceptedFiles.length === 0) return;
@@ -41,54 +49,81 @@ export default function SubirGPX() {
     const reader = new FileReader();
 
     reader.onload = () => {
-        try {
-          const gpx = new GPX();
-          console.log("Contenido GPX leído:", reader.result); // 👈 AÑADE AQUÍ
-          gpx.parse(String(reader.result));
-      
-          const trackPoints = [];
-          
-          gpx.tracks.forEach((track, i) => {
-            if (!track.segments) {
-              console.warn(`Track ${i} no tiene segmentos.`);
-              return;
-            }
+      try {
+        const gpx = new GPX();
+        console.log("Contenido GPX leído:", reader.result);
+        gpx.parse(String(reader.result));
+    
+        const trackPoints = [];
+        let tracksWithSegments = 0;
+    
+        gpx.tracks.forEach((track, i) => {
+          let pointsAdded = false;
+    
+          if (track.segments && track.segments.length > 0) {
             track.segments.forEach(segment => {
               if (!segment) return;
               segment.forEach(point => {
                 trackPoints.push([point.lat, point.lon]);
+                pointsAdded = true;
               });
             });
-          });
-          
-          
-          
-        
-      
-          const wpts = gpx.waypoints.map(wp => ({
-            id: wp.name || Math.random().toString(36).substr(2, 9),
-            lat: wp.lat,
-            lon: wp.lon,
-            name: wp.name || 'Waypoint',
-            desc: wp.desc || '',
-            type: "",
-            photos: [],
-          }));
-      
-          setGeojson(trackPoints.length > 0 ? trackPoints : null);
-          setWaypoints(wpts);
-          setMessage(`Archivo GPX cargado: ${file.name}`);
-      
-        } catch (e) {
-          console.error("Error al parsear GPX:", e); // 👈 OPCIONAL
-          setMessage('Error leyendo el archivo GPX.');
+          } else if (track.trkseg && track.trkseg.length > 0) {
+            track.trkseg.forEach(segment => {
+              if (!segment) return;
+              segment.forEach(point => {
+                trackPoints.push([point.lat, point.lon]);
+                pointsAdded = true;
+              });
+            });
+          } else if (track.points && track.points.length > 0) {
+            track.points.forEach(point => {
+              trackPoints.push([point.lat, point.lon]);
+              pointsAdded = true;
+            });
+          } else {
+            console.warn(`Track ${i} no tiene segmentos ni puntos accesibles.`);
+          }
+    
+          if (pointsAdded) {
+            tracksWithSegments++;
+          }
+        });
+    
+        if (tracksWithSegments === 0) {
+          console.warn('Ningún track válido con segmentos encontrados.');
+          setMessage('El archivo GPX no contiene datos de ruta válidos.');
           setGeojson(null);
           setWaypoints([]);
+          setRutaDescripcion('');
+          return;
         }
-    };      
-
+    
+        const wpts = gpx.waypoints.map(wp => ({
+          id: wp.name || Math.random().toString(36).substr(2, 9),
+          lat: wp.lat,
+          lon: wp.lon,
+          name: wp.name || 'Waypoint',
+          desc: wp.desc || '',
+          type: "",
+          photos: [],
+        }));
+    
+        setGeojson(trackPoints.length > 0 ? trackPoints : null);
+        setWaypoints(wpts);
+        setMessage(`Archivo GPX cargado: ${file.name}`);
+        setRutaDescripcion('');
+    
+      } catch (e) {
+        console.error("Error al parsear GPX:", e);
+        setMessage('Error leyendo el archivo GPX.');
+        setGeojson(null);
+        setWaypoints([]);
+        setRutaDescripcion('');
+      }
+    };
+    
     reader.readAsText(file, 'UTF-8');
-
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -96,6 +131,7 @@ export default function SubirGPX() {
     accept: { 'application/gpx+xml': ['.gpx'] },
     multiple: false,
   });
+
 
   function openWaypointForm(wp) {
     setSelectedWaypoint(wp);
@@ -140,18 +176,64 @@ export default function SubirGPX() {
 
   async function guardarRuta() {
     if (!geojson) return;
-    // Aquí deberías convertir waypoints y fotos a formato para backend (multipart/form-data)
-    // o separar subida de fotos y datos.
-    alert("Función guardar ruta aún no implementada en backend.");
+  
+    const nombreRuta = message.replace('Archivo GPX cargado: ', '').replace('.gpx', '');
+    const descripcion = waypointForm.description || '';
+    const fecha = selectedDate.toISOString();
+    const usuario_id = 1; // 👈 Sustituye por el ID real si tienes login
+  
+    try {
+      // 1. Crear ruta en backend
+      const rutaResponse = await fetch('http://localhost:8000/api/rutas/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nombre: nombreRuta,
+          descripcion,
+          fecha,
+          usuario_id
+        })
+      });
+  
+      if (!rutaResponse.ok) throw new Error('Error al crear la ruta');
+      const nuevaRuta = await rutaResponse.json();
+  
+      // 2. Crear ubicaciones (waypoints)
+      for (const wp of waypoints) {
+        await fetch('http://localhost:8000/api/ubicaciones/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            nombre: wp.name,
+            lat: wp.lat,
+            lon: wp.lon,
+            tipo: wp.type || '',
+            ruta_id: nuevaRuta.id
+          })
+        });
+      }
+  
+      alert("Ruta y waypoints guardados con éxito");
+  
+    } catch (error) {
+      console.error(error);
+      alert("Hubo un error guardando la ruta");
+    }
   }
-
+  
   return (
     <div className="container-subir-gpx">
-      <div {...getRootProps()} className={`dropzone ${isDragActive ? 'drag-active' : ''}`}>
-        <input {...getInputProps()} />
-        <p>{isDragActive ? "Suelta el archivo aquí..." : message}</p>
-      </div>
-
+      <SubirGPX_Dropzone
+        getRootProps={getRootProps}
+        getInputProps={getInputProps}
+        isDragActive={isDragActive}
+        message={message}
+      />
+  
       <div style={{ marginTop: 10 }}>
         <label>Fecha de la ruta: </label>
         <DatePicker
@@ -160,31 +242,36 @@ export default function SubirGPX() {
           dateFormat="dd/MM/yyyy"
         />
       </div>
-
-      {geojson && (
+  
+      <div style={{ marginTop: 10 }}>
+        <label>Descripción de la ruta:</label>
+        <textarea
+          value={rutaDescripcion}
+          onChange={e => setRutaDescripcion(e.target.value)}
+          rows={3}
+          style={{ width: '100%', resize: 'vertical' }}
+        />
+      </div>
+  
+      {(Array.isArray(geojson) && geojson.length > 0) || waypoints.length > 0 ? (
         <>
-          <MapContainer center={geojson[0]} zoom={13} style={{ height: 400, marginTop: 20 }}>
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="© OpenStreetMap contributors"
-            />
-            <Polyline positions={geojson} color="blue" />
-            {waypoints.map(wp => (
-              <Marker key={wp.id} position={[wp.lat, wp.lon]} icon={icon} eventHandlers={{ click: () => openWaypointForm(wp) }}>
-                <Popup>
-                  <strong>{wp.name}</strong><br />
-                  {wp.desc}
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+          <SubirGPX_Mapa
+            geojson={geojson}
+            waypoints={waypoints}
+            openWaypointForm={openWaypointForm}
+          />
 
-          <button onClick={guardarRuta} style={{ marginTop: 15, padding: '10px 20px', fontWeight: 'bold' }}>
-            Guardar ruta
+          <button
+            onClick={guardarRuta}
+            disabled={loading}
+            style={{ marginTop: 15, padding: '10px 20px', fontWeight: 'bold' }}
+          >
+            {loading ? 'Guardando...' : 'Guardar ruta'}
           </button>
         </>
-      )}
+      ) : null}
 
+  
       {selectedWaypoint && (
         <div className="waypoint-form">
           <h3>Editar Waypoint: {selectedWaypoint.name}</h3>
@@ -193,10 +280,15 @@ export default function SubirGPX() {
             <option value="">-- Selecciona tipo --</option>
             {waypointTypes.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-
+  
           <label>Descripción:</label>
-          <textarea name="description" value={waypointForm.description} onChange={handleWaypointChange} rows={3} />
-
+          <textarea
+            name="description"
+            value={waypointForm.description}
+            onChange={handleWaypointChange}
+            rows={3}
+          />
+  
           <label>Fotos (máximo 6):</label>
           <input
             type="file"
@@ -204,7 +296,7 @@ export default function SubirGPX() {
             accept="image/*"
             onChange={handlePhotoUpload}
           />
-
+  
           <button onClick={saveWaypointData} style={{ marginTop: 10 }}>
             Guardar waypoint
           </button>
@@ -215,4 +307,5 @@ export default function SubirGPX() {
       )}
     </div>
   );
+  
 }

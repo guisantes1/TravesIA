@@ -1,48 +1,35 @@
 from pydantic import BaseModel, EmailStr
 from pydantic import ConfigDict
-
+from typing import List, Optional
+from datetime import datetime
 
 class UserCreate(BaseModel):
     email: EmailStr
-    username: str             # Añade este campo obligatorio
+    username: str             # Campo obligatorio
     password: str
-    full_name: str | None = None
+    full_name: Optional[str] = None
 
 class UserOut(BaseModel):
     id: int
     email: EmailStr
-    username: str  # Añadido
-    full_name: str | None
+    username: str
+    full_name: Optional[str] = None
 
-class Config:
-    orm_mode = True
-
+    class Config:
+        orm_mode = True
 
 class UserLogin(BaseModel):
-    username: str  # Cambiado de email a username para login
+    username: str
     password: str
 
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-
-class UserLogin(BaseModel):
-    username: str  # Cambiado de email a username para login
-    password: str
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
 
 # Schema para Opinion
 class OpinionBase(BaseModel):
     texto: str
-    fotos: Optional[str] = None  # Podrías usar JSON str con URLs
+    fotos: Optional[str] = None  # URLs en string JSON posible
     fecha: Optional[datetime] = None
 
 class OpinionCreate(OpinionBase):
@@ -64,7 +51,7 @@ class UbicacionBase(BaseModel):
     nombre: str
     lat: float
     lon: float
-    tipo: Optional[str] = None  # tipo waypoint (peak, collado, río...)
+    tipo: Optional[str] = None
 
 class UbicacionCreate(UbicacionBase):
     ruta_id: int
@@ -80,7 +67,7 @@ class UbicacionOut(UbicacionBase):
 class RutaBase(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
-    fecha: Optional[datetime] = None  # 🆕
+    fecha: Optional[datetime] = None
 
 class RutaCreate(RutaBase):
     usuario_id: int
