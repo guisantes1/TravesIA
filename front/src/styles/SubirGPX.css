@@ -26,15 +26,18 @@
 /* ===== Mapa ===== */
 .map-container {
   background-color: white;
-  height: 600px;
   max-width: 900px;
-  width: 100%;
-  margin: 20px auto;
+  width: 120%;
+  height: 720px; /* 600px * 1.2 */
+  aspect-ratio: 16 / 9;  /* ancho siempre 16, alto siempre 9 */
+  margin: auto;
   padding: 0;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+  margin-bottom: 50px; /* Espacio entre el mapa y el formulario */
 }
+
 
 .leaflet-container {
   width: 100% !important;
@@ -44,7 +47,12 @@
   overflow: hidden !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* Escalar todo el mapa (texto, iconos, controles) */
+  transform: scale(1.2);
+  transform-origin: top left;
 }
+
 
 .leaflet-tile {
   image-rendering: auto !important; /* suaviza sin pixelar */
@@ -94,3 +102,145 @@
 .react-datepicker-popper {
   z-index: 9999 !important;
 }
+
+/* Estilos para el formulario, colocado debajo del mapa */
+/* Estilos para el formulario, colocado debajo del mapa */
+.waypoint-form {
+  position: absolute;
+  bottom: 10px;  /* Ajustar esta propiedad según sea necesario */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  padding: 25px; /* Aumento de padding */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 300px;
+  font-family: 'Arial', sans-serif;
+}
+
+.waypoint-form h3 {
+  margin-top: 0;
+  font-size: 18px;
+  text-align: center;
+}
+
+.waypoint-form label {
+  font-size: 14px;
+  margin-bottom: 10px;  /* Aumento del margen inferior */
+  display: block;
+}
+
+.waypoint-form input,
+.waypoint-form textarea,
+.waypoint-form select {
+  width: 100%;
+  padding: 10px;  /* Aumento del padding */
+  margin: 10px 0 20px 0;  /* Aumento de los márgenes verticales */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  box-sizing: border-box; /* Asegura que el padding no afecte el tamaño */
+}
+
+.waypoint-form textarea {
+  height: 100px;
+}
+
+.waypoint-form input[type="file"] {
+  padding: 6px;
+}
+
+.waypoint-form button {
+  width: 100%;
+  padding: 12px; /* Aumento de padding en los botones */
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.waypoint-form button:hover {
+  background-color: #45a049;
+}
+
+.waypoint-form button.cancel {
+  background-color: #f44336;
+  margin-top: 5px;
+}
+
+.waypoint-form button.cancel:hover {
+  background-color: #e53935;
+}
+
+.waypoint-form .photo-preview {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.waypoint-form .photo-preview img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+/* Estilo de los campos de tipo y descripción */
+input[type="text"], textarea, select {
+  border-color: #ccc;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus, textarea:focus, select:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+input[type="file"]:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+/* Asegurarnos que los inputs estén centrados y con margen adecuado */
+.waypoint-form input, .waypoint-form textarea, .waypoint-form select {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.photo-preview {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.photo-thumbnail {
+  text-align: center;
+  margin: 5px;
+}
+
+.photo-preview img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+.file-drop-area {
+  border: 2px dashed #4CAF50;
+  padding: 10px;
+  text-align: center;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+}
+
+.file-drop-area:hover {
+  background-color: #f1f1f1;
+}
+

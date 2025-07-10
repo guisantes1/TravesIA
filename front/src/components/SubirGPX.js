@@ -22,16 +22,7 @@ const icon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-const waypointTypes = [
-  "peak",
-  "collado",
-  "river",
-  "lake",
-  "cave",
-  "forest",
-  "waterfall",
-  // Añade más según OSM
-];
+
 
 export default function SubirGPX() {
   const [geojson, setGeojson] = useState(null);
@@ -133,46 +124,7 @@ export default function SubirGPX() {
   });
 
 
-  function openWaypointForm(wp) {
-    setSelectedWaypoint(wp);
-    setWaypointForm({
-      type: wp.type || "",
-      photos: wp.photos || [],
-      description: wp.desc || ""
-    });
-  }
 
-  function closeWaypointForm() {
-    setSelectedWaypoint(null);
-    setWaypointForm({ type: "", photos: [], description: "" });
-  }
-
-  function handleWaypointChange(e) {
-    const { name, value } = e.target;
-    setWaypointForm(prev => ({ ...prev, [name]: value }));
-  }
-
-  function handlePhotoUpload(e) {
-    const files = Array.from(e.target.files).slice(0, 6);
-    setWaypointForm(prev => ({ ...prev, photos: files }));
-  }
-
-  function saveWaypointData() {
-    setWaypoints(prev =>
-      prev.map(wp => {
-        if (wp.id === selectedWaypoint.id) {
-          return {
-            ...wp,
-            type: waypointForm.type,
-            photos: waypointForm.photos,
-            desc: waypointForm.description,
-          };
-        }
-        return wp;
-      })
-    );
-    closeWaypointForm();
-  }
 
   async function guardarRuta() {
     if (!geojson) return;
@@ -258,7 +210,6 @@ export default function SubirGPX() {
           <SubirGPX_Mapa
             geojson={geojson}
             waypoints={waypoints}
-            openWaypointForm={openWaypointForm}
           />
 
           <button
@@ -272,39 +223,7 @@ export default function SubirGPX() {
       ) : null}
 
   
-      {selectedWaypoint && (
-        <div className="waypoint-form">
-          <h3>Editar Waypoint: {selectedWaypoint.name}</h3>
-          <label>Tipo:</label>
-          <select name="type" value={waypointForm.type} onChange={handleWaypointChange}>
-            <option value="">-- Selecciona tipo --</option>
-            {waypointTypes.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-  
-          <label>Descripción:</label>
-          <textarea
-            name="description"
-            value={waypointForm.description}
-            onChange={handleWaypointChange}
-            rows={3}
-          />
-  
-          <label>Fotos (máximo 6):</label>
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handlePhotoUpload}
-          />
-  
-          <button onClick={saveWaypointData} style={{ marginTop: 10 }}>
-            Guardar waypoint
-          </button>
-          <button onClick={closeWaypointForm} style={{ marginLeft: 10 }}>
-            Cancelar
-          </button>
-        </div>
-      )}
+ 
     </div>
   );
   
