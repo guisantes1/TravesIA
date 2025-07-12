@@ -3,9 +3,11 @@ from pydantic import ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
+# -------------------- USER --------------------
+
 class UserCreate(BaseModel):
     email: EmailStr
-    username: str             # Campo obligatorio
+    username: str
     password: str
     full_name: Optional[str] = None
 
@@ -15,8 +17,7 @@ class UserOut(BaseModel):
     username: str
     full_name: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserLogin(BaseModel):
     username: str
@@ -26,10 +27,11 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-# Schema para Opinion
+# -------------------- OPINIÓN --------------------
+
 class OpinionBase(BaseModel):
     texto: str
-    fotos: Optional[str] = None  # URLs en string JSON posible
+    fotos: Optional[str] = None
     fecha: Optional[datetime] = None
 
 class OpinionCreate(OpinionBase):
@@ -46,15 +48,18 @@ class OpinionOut(OpinionBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-# Schema para Ubicacion
+# -------------------- UBICACIÓN --------------------
+
 class UbicacionBase(BaseModel):
     nombre: str
+    tipo: Optional[str] = None
+    descripcion: Optional[str] = None
     lat: float
     lon: float
-    tipo: Optional[str] = None
+    fotos: List[str] = []
 
 class UbicacionCreate(UbicacionBase):
-    ruta_id: int
+    ruta_id: int  # 👈 Añádelo aquí
 
 class UbicacionOut(UbicacionBase):
     id: int
@@ -63,7 +68,8 @@ class UbicacionOut(UbicacionBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-# Schema para Ruta
+# -------------------- RUTA --------------------
+
 class RutaBase(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
@@ -71,6 +77,7 @@ class RutaBase(BaseModel):
 
 class RutaCreate(RutaBase):
     usuario_id: int
+    ubicaciones: List[UbicacionCreate] = []
 
 class RutaOut(RutaBase):
     id: int

@@ -4,6 +4,7 @@ import '../styles/Home.css';
 import CrearProyecto from './CrearProyecto';
 import SubirGPX from './SubirGPX';
 import VerProyectos from './VerProyectos';
+import VerMapa from './VerMapa'; // <-- Importa el nuevo componente
 
 function Home() {
   const [activeTab, setActiveTab] = useState('crear');
@@ -16,6 +17,8 @@ function Home() {
         return <SubirGPX />;
       case 'proyectos':
         return <VerProyectos />;
+      case 'mapa':
+        return <VerMapa />;
       default:
         return null;
     }
@@ -32,6 +35,9 @@ function Home() {
         </button>
         <button className={activeTab === 'proyectos' ? 'active' : ''} onClick={() => setActiveTab('proyectos')}>
           📁 Todos mis proyectos
+        </button>
+        <button className={activeTab === 'mapa' ? 'active' : ''} onClick={() => setActiveTab('mapa')}>
+          🗺️ Ver Mapa
         </button>
       </nav>
       <main className="content">

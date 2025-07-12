@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, LayersControl} from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+import SubirGPX_Waypoint from './SubirGPX_Waypoint';
 
 // Icono para los marcadores
 const icon = new L.Icon({
@@ -35,26 +37,7 @@ export default function SubirGPX_Mapa({ geojson, waypoints, setWaypoints }) {
     description: ""
   });
 
-  const tileLayers = {
-    osm: {
-      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      attribution: "© OpenStreetMap contributors",
-      name: "OpenStreetMap",
-    },
-    topo: {
-      url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-      attribution:
-        'Map data: © <a href="https://opentopomap.org">OpenTopoMap</a> contributors',
-      name: "OpenTopoMap",
-    },
-    esri: {
-      url:
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      attribution:
-        'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, and others',
-      name: "Esri Satellite",
-    },
-  };
+  const { BaseLayer } = LayersControl;
 
   // Abre el formulario para editar un waypoint
   const openWaypointForm = (wp) => {
@@ -75,9 +58,15 @@ export default function SubirGPX_Mapa({ geojson, waypoints, setWaypoints }) {
 
   // Maneja la carga de fotos (max 6 fotos)
   const handlePhotoUpload = (e) => {
-    const files = Array.from(e.target.files).slice(0, 6); // Limitar a 6 archivos
-    setWaypointForm(prev => ({ ...prev, photos: files }));
+    const newFiles = Array.from(e.target.files).slice(0, 6);
+  
+    // Si ya hay fotos cargadas, las acumulamos (sin pasarnos de 6)
+    setWaypointForm(prev => {
+      const combined = [...prev.photos, ...newFiles].slice(0, 6);
+      return { ...prev, photos: combined };
+    });
   };
+  
 
   // Establecer la zona de "arrastrar y soltar" (Drag-and-drop)
   const handleDrop = (e) => {
@@ -101,6 +90,13 @@ export default function SubirGPX_Mapa({ geojson, waypoints, setWaypoints }) {
   const handleWaypointChange = (e) => {
     const { name, value } = e.target;
     setWaypointForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const removePhotoAtIndex = (indexToRemove) => {
+    setWaypointForm(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, index) => index !== indexToRemove)
+    }));
   };
 
   // Guarda los cambios en el waypoint
@@ -127,21 +123,28 @@ export default function SubirGPX_Mapa({ geojson, waypoints, setWaypoints }) {
     <div style={{ display: 'flex', gap: '20px' }}>
       {/* MAPA A LA IZQUIERDA */}
       <div className="map-container" style={{ position: 'relative', width: '900px', height: '675px' }}>
-        <select
-          className="map-style-selector"
-          value={mapStyle}
-          onChange={e => setMapStyle(e.target.value)}
-        >
-          {Object.entries(tileLayers).map(([key, layer]) => (
-            <option key={key} value={key}>{layer.name}</option>
-          ))}
-        </select>
   
         <MapContainer center={geojson[0]} zoom={13} style={{ height: '100%', width: '100%' }}>
-          <TileLayer
-            url={tileLayers[mapStyle].url}
-            attribution={tileLayers[mapStyle].attribution}
-          />
+          <LayersControl position="topright">
+            <BaseLayer checked name="OpenStreetMap">
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="© OpenStreetMap contributors"
+              />
+            </BaseLayer>
+            <BaseLayer name="OpenTopoMap">
+              <TileLayer
+                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                attribution="Map data: © OpenTopoMap contributors"
+              />
+            </BaseLayer>
+            <BaseLayer name="Esri Satellite">
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution="Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, and others"
+              />
+            </BaseLayer>
+          </LayersControl>
           <Polyline positions={geojson} color="blue" />
           {waypoints.map(wp => (
             <Marker
@@ -162,69 +165,16 @@ export default function SubirGPX_Mapa({ geojson, waypoints, setWaypoints }) {
   
       {/* FORMULARIO A LA DERECHA */}
       {selectedWaypoint && (
-        <div className="waypoint-form" style={{
-          width: '300px',
-          padding: '15px',
-          background: '#f9f9f9',
-          border: '1px solid #ccc',
-          borderRadius: '8px',
-          height: 'fit-content'
-        }}>
-          <h3>Editar Waypoint: {selectedWaypoint.name}</h3>
-          <div>
-            <label>Tipo:</label>
-            <select
-              name="type"
-              value={waypointForm.type}
-              onChange={handleWaypointChange}
-            >
-              <option value="">Selecciona un tipo</option>
-              {waypointTypes.map((type, index) => (
-                <option key={index} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ marginTop: 10 }}>
-            <label>Descripción:</label>
-            <textarea
-              name="description"
-              value={waypointForm.description}
-              onChange={handleWaypointChange}
-              placeholder="Descripción del waypoint"
-              rows={4}
-              style={{ width: '100%' }}
-            />
-          </div>
-          <div
-            className="file-drop-area"
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            style={{ marginTop: 10 }}
-          >
-            <label>Fotos:</label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handlePhotoUpload}
-            />
-            <div className="photo-preview" style={{ display: 'flex', flexWrap: 'wrap' }}>
-              {waypointForm.photos && waypointForm.photos.map((file, index) => (
-                <div key={index} className="photo-thumbnail">
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={`Preview ${index}`}
-                    style={{ width: "50px", height: "50px", objectFit: "cover", margin: "5px", borderRadius: "5px" }}
-                  />
-                  <div style={{ fontSize: '10px' }}>{file.name}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <button onClick={saveWaypointData} style={{ marginTop: 10 }}>Guardar</button>
-          <button className="cancel" onClick={closeWaypointForm} style={{ marginTop: 5 }}>Cancelar</button>
-        </div>
+        <SubirGPX_Waypoint
+          waypoint={selectedWaypoint}
+          waypointForm={waypointForm}
+          setWaypointForm={setWaypointForm}
+          waypointTypes={waypointTypes}
+          onSave={saveWaypointData}
+          onCancel={closeWaypointForm}
+        />
       )}
+
     </div>
   );
   

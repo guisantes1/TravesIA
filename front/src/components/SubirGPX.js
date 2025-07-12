@@ -9,7 +9,10 @@ import GPX from 'gpxparser';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-import '../styles/SubirGPX.css';
+import '../styles/SubirGPX/layout.css';
+import '../styles/SubirGPX/map.css';
+import '../styles/SubirGPX/waypoint-form.css';
+
 
 import SubirGPX_Dropzone from './SubirGPX_funciones/SubirGPX_Dropzone';
 import SubirGPX_Mapa from './SubirGPX_funciones/SubirGPX_Mapa';
@@ -124,15 +127,13 @@ export default function SubirGPX() {
   });
 
 
-
-
   async function guardarRuta() {
     if (!geojson) return;
   
     const nombreRuta = message.replace('Archivo GPX cargado: ', '').replace('.gpx', '');
-    const descripcion = waypointForm.description || '';
+    const descripcion = rutaDescripcion || '';
     const fecha = selectedDate.toISOString();
-    const usuario_id = 1; // 👈 Sustituye por el ID real si tienes login
+    const usuario_id = 1; // Sustituye si hay login
   
     try {
       // 1. Crear ruta en backend
@@ -210,6 +211,7 @@ export default function SubirGPX() {
           <SubirGPX_Mapa
             geojson={geojson}
             waypoints={waypoints}
+            setWaypoints={setWaypoints}
           />
 
           <button

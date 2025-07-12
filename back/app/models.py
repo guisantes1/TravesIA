@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, ForeignKey, Text, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
@@ -31,17 +31,18 @@ class Ruta(Base):
 
 
 class Ubicacion(Base):
-    __tablename__ = 'ubicaciones'
+    __tablename__ = "ubicaciones"
     id = Column(Integer, primary_key=True, index=True)
-    ruta_id = Column(Integer, ForeignKey('rutas.id'))
     nombre = Column(String)
+    tipo = Column(String)
+    descripcion = Column(String)  # 🆕
     lat = Column(Float)
     lon = Column(Float)
-    tipo = Column(String)  # Tipo de waypoint (peak, collado, río, lago, etc)
-
+    fotos = Column(Text)  # JSON string con las URLs
+    ruta_id = Column(Integer, ForeignKey("rutas.id"))
+    
     ruta = relationship("Ruta", back_populates="ubicaciones")
-    opiniones = relationship("Opinion", back_populates="ubicacion")
-
+    opiniones = relationship("Opinion", back_populates="ubicacion", cascade="all, delete")
 
 class Opinion(Base):
     __tablename__ = 'opiniones'

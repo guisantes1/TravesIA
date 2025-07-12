@@ -1,0 +1,77 @@
+/* ===== Mapa y Leaflet ===== */
+.map-container {
+    background-color: white;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin: auto;
+    border-radius: 8px;
+    overflow: visible;
+    box-shadow: 0 2px 8px rgba(0 0 0 / 0.1);
+    margin-bottom: 50px;
+  }
+  
+  .leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #f8f8f8;
+  }
+  
+  
+  .leaflet-tile, .leaflet-tile-container {
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    backface-visibility: hidden !important;
+  }
+  
+  .map-style-selector {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1500;
+    background: white url('https://unpkg.com/leaflet@1.9.4/dist/images/layers.png') no-repeat center left 8px;
+    background-size: 20px 20px;
+    padding: 8px 10px 8px 36px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    appearance: none;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+  
+  .map-style-selector:hover,
+  .map-style-selector:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px #007bff;
+    outline: none;
+  }
+  
+  
+  /* Calendario encima del mapa */
+  .react-datepicker-popper {
+    z-index: 9999 !important;
+  }
+  
+  /* Personaliza solo el botón del LayersControl */
+.leaflet-control-layers-toggle {
+  background-image: url('https://unpkg.com/leaflet@1.9.4/dist/images/layers.png'); /* Icono bonito */
+  background-size: 28px 28px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: white;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 1px solid #ccc;
+  transition: transform 0.2s ease;
+}
+
+.leaflet-control-layers-toggle:hover {
+  transform: scale(1.1);
+  cursor: pointer;
+}
