@@ -92,84 +92,120 @@ function VerMapa() {
   );
 }
 
-// src/components/VerMapa_funciones/TraerWaypoints.js
-
 const fetchWaypointsFromOSM = async (topLeft, bottomRight) => {
-    const [lat1, lon1] = topLeft;
-    const [lat2, lon2] = bottomRight;
-  
-    const bbox = `${lat2},${lon1},${lat1},${lon2}`;
-  
-    const query = `
-        [out:json][timeout:25];
-        (
-        // 🔹 NODES (puntos individuales)
-        node["tourism"="viewpoint"](${bbox});             // Miradores
-        node["amenity"="shelter"](${bbox});               // Refugios simples
-        node["natural"="peak"](${bbox});                  // Picos / cumbres
-        node["natural"="spring"](${bbox});                // Fuentes naturales
-        node["amenity"="drinking_water"](${bbox});        // Agua potable (grifo o similar)
-        node["natural"="mountain_pass"](${bbox});         // Collados / pasos de montaña
-        node["tourism"="alpine_hut"](${bbox});            // Refugios de montaña guardados
-        node["man_made"="cross"](${bbox});                // Cruces en picos o pasos
-        node["tourism"="wilderness_hut"](${bbox});        // Cabañas rústicas (Finlandia, Noruega)
-        node["building"="cabin"](${bbox});                // Cabañas (puede ser redundante)
-        node["amenity"="toilets"](${bbox});               // Baños (interesante en rutas largas)
-        node["emergency"="phone"](${bbox});               // Teléfono de emergencia
-        node["historic"="memorial"](${bbox});             // Monumentos conmemorativos
+  const [lat1, lon1] = topLeft;
+  const [lat2, lon2] = bottomRight;
 
-        // 🔸 WAYS (formas/polígonos con centro)
-        way["amenity"="shelter"](${bbox});                // Refugios simples en forma de way
-        way["tourism"="alpine_hut"](${bbox});             // Refugios grandes (guardados)
-        way["natural"="spring"](${bbox});                 // Fuente en forma de way
-        way["amenity"="drinking_water"](${bbox});         // Agua potable en forma de way
-        way["natural"="mountain_pass"](${bbox});          // Collado como forma (raro)
-        way["tourism"="viewpoint"](${bbox});              // Mirador en forma de área
-        way["man_made"="cross"](${bbox});                 // Cruz como elemento visible
-        way["historic"="memorial"](${bbox});              // Monumento conmemorativo
+  const bbox = `${lat2},${lon1},${lat1},${lon2}`;
 
-        );
-        out center tags;
-    `;
-  
-    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-  
+  const query = `
+    [out:json][timeout:25];
+    (
+      node["tourism"="viewpoint"](${bbox});
+      node["amenity"="shelter"](${bbox});
+      node["natural"="peak"](${bbox});
+      node["natural"="spring"](${bbox});
+      node["amenity"="drinking_water"](${bbox});
+      node["natural"="mountain_pass"](${bbox});
+      node["tourism"="alpine_hut"](${bbox});
+      node["man_made"="cross"](${bbox});
+      node["tourism"="wilderness_hut"](${bbox});
+      node["building"="cabin"](${bbox});
+      node["amenity"="toilets"](${bbox});
+      node["emergency"="phone"](${bbox});
+      node["historic"="memorial"](${bbox});
+
+      way["amenity"="shelter"](${bbox});
+      way["tourism"="alpine_hut"](${bbox});
+      way["natural"="spring"](${bbox});
+      way["amenity"="drinking_water"](${bbox});
+      way["natural"="mountain_pass"](${bbox});
+      way["tourism"="viewpoint"](${bbox});
+      way["man_made"="cross"](${bbox});
+      way["historic"="memorial"](${bbox});
+    );
+    out center tags;
+  `;
+
+  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+
+  const traducirTipo = (tags) => {
+    if (tags.tourism === "viewpoint") return "Mirador";
+    if (tags.amenity === "shelter") return "Refugio libre";
+    if (tags.amenity === "drinking_water") return "Agua potable";
+    if (tags.natural === "peak") return "Cima";
+    if (tags.natural === "spring") return "Fuente";
+    if (tags.natural === "mountain_pass") return "Collado";
+    if (tags.tourism === "alpine_hut") return "Refugio guardado";
+    if (tags.man_made === "cross") return "Cruz de montaña";
+    if (tags.tourism === "wilderness_hut") return "Cabaña rústica";
+    if (tags.building === "cabin") return "Cabaña";
+    if (tags.amenity === "toilets") return "Aseos";
+    if (tags.emergency === "phone") return "Teléfono de emergencia";
+    if (tags.historic === "memorial") return "Monumento";
+    return "Otro";
+  };
+
+  const obtenerResumenWikipedia = async (nombre) => {
+    const nombreWiki = nombre.trim().replace(/\s+/g, '_');  // <-- reemplaza espacios por "_"
+    const url = `https://es.wikipedia.org/api/rest_v1/page/summary/${nombreWiki}`;
+    
     try {
-      const response = await fetch(url);
-      const data = await response.json();
-  
-      const normalized = data.elements.map(el => {
-        let lat = el.lat || el.center?.lat;
-        let lon = el.lon || el.center?.lon;
-  
-        if ((!lat || !lon) && el.type === 'way' && el.geometry?.length) {
-          const avgLat = el.geometry.reduce((sum, p) => sum + p.lat, 0) / el.geometry.length;
-          const avgLon = el.geometry.reduce((sum, p) => sum + p.lon, 0) / el.geometry.length;
-          lat = avgLat;
-          lon = avgLon;
-        }
-  
-        const nombre = el.tags?.name?.trim();
-        if (!lat || !lon || !nombre) return null;
-  
-        return {
-          id: el.id,
-          lat,
-          lon,
-          nombre,
-          tipo: el.tags?.amenity || el.tags?.natural || el.tags?.tourism || 'desconocido'
-        };
-      }).filter(Boolean);
-  
-      return normalized;
-    } catch (error) {
-      console.error("❌ Error al consultar Overpass API:", error);
-      return [];
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.extract || null;
+    } catch {
+      return null;
     }
-};  
-     
-export default fetchWaypointsFromOSM;
+  };
   
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const normalized = await Promise.all(data.elements.map(async el => {
+      let lat = el.lat || el.center?.lat;
+      let lon = el.lon || el.center?.lon;
+    
+      if ((!lat || !lon) && el.type === 'way' && el.geometry?.length) {
+        const avgLat = el.geometry.reduce((sum, p) => sum + p.lat, 0) / el.geometry.length;
+        const avgLon = el.geometry.reduce((sum, p) => sum + p.lon, 0) / el.geometry.length;
+        lat = avgLat;
+        lon = avgLon;
+      }
+    
+      const nombre = el.tags?.name?.trim();
+      if (!lat || !lon || !nombre) return null;
+    
+      const tipo = traducirTipo(el.tags);
+      const fallbackDescripcion = el.tags?.description || el.tags?.note || '';
+      const resumenWiki = await obtenerResumenWikipedia(nombre);
+    
+      return {
+        id: el.id,
+        lat,
+        lon,
+        nombre,
+        tipo,
+        descripcion: resumenWiki || fallbackDescripcion
+      };
+    }));
+    
+    // 👇 Añade este console.log justo antes de devolver
+    console.log("✅ Waypoints normalizados para enviar:", normalized.filter(Boolean));
+    
+    return normalized.filter(Boolean);
+    
+  } catch (error) {
+    console.error("❌ Error al consultar Overpass API:", error);
+    return [];
+  }
+};
+
+export default fetchWaypointsFromOSM;
+
   
   
   

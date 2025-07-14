@@ -35,7 +35,7 @@ class Ubicacion(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String)
     tipo = Column(String)
-    descripcion = Column(String)  # 🆕
+    descripcion = Column(Text, nullable=True)
     lat = Column(Float)
     lon = Column(Float)
     fotos = Column(Text)  # JSON string con las URLs

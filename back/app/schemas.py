@@ -58,8 +58,23 @@ class UbicacionBase(BaseModel):
     lon: float
     fotos: List[str] = []
 
-class UbicacionCreate(UbicacionBase):
-    ruta_id: int  # 👈 Añádelo aquí
+class UbicacionCreate(BaseModel):
+    nombre: str
+    tipo: str
+    descripcion: Optional[str] = None
+    lat: float
+    lon: float
+    ruta_id: int
+
+
+class UbicacionUpdate(BaseModel):
+    nombre: str
+    tipo: Optional[str] = None
+    descripcion: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
 
 class UbicacionOut(UbicacionBase):
     id: int

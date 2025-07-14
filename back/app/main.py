@@ -16,11 +16,12 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Permite solo el frontend React
+    allow_origins=["*"],  # ← prueba abierta
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Incluir las rutas de usuarios y rutas
 app.include_router(users.router, prefix="/api/users")

@@ -1,10 +1,14 @@
+/* ------------------------------------ */
+/*            MAPA PRINCIPAL            */
+/* ------------------------------------ */
+
 .map-wrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
   padding: 0 10px;
   box-sizing: border-box;
-  height: 100%;
 }
 
 .map-title {
@@ -15,29 +19,28 @@
 
 .map-container {
   width: 100%;
-  max-width: 1200px;       /* ✅ Limita el ancho en pantallas grandes */
-  height: auto;
+  max-width: 95vw;  
   aspect-ratio: 16 / 9;
-  position: relative;
-  z-index: 0;
   margin: 0 auto;
+  position: relative;
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-
-/* Estilo base del mapa */
 .leaflet-container {
   width: 100% !important;
   height: 100% !important;
+  background: #f8f8f8;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background: #f8f8f8;
 }
 
-/* Control de capas (desplegable) */
+/* ------------------------------------ */
+/*           CONTROLES MAPA             */
+/* ------------------------------------ */
+
 .leaflet-control-layers {
   z-index: 2000 !important;
   background-color: white;
@@ -50,4 +53,155 @@
   z-index: 2000 !important;
   top: 12px;
   right: 12px;
+}
+
+.map-refresh-button {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1000;
+}
+
+.map-refresh-button button {
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: background-color 0.2s ease;
+}
+
+.map-refresh-button button:hover {
+  background-color: #f0f0f0;
+}
+
+/* ------------------------------------ */
+/*     CONTENEDOR DE EDICIÓN INFERIOR   */
+/* ------------------------------------ */
+
+.editor-contenedor {
+  display: flex;
+  width: 100%;
+  gap: 20px; /* margen entre los dos cuadros */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+
+/* ------------------------------------ */
+/*        CUADRO NEGRO (Editor)         */
+/* ------------------------------------ */
+
+/* Editor negro (1/3 del espacio) */
+.editor-waypoint {
+  width: 33%;
+  background-color: white;
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 240px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  font-family: sans-serif;
+  box-sizing: border-box;
+}
+
+
+.editor-waypoint h3 {
+  margin-top: 0;
+  font-size: 16px;
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.editor-waypoint label {
+  display: block;
+  font-weight: bold;
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.editor-waypoint input,
+.editor-waypoint select {
+  width: 100%;
+  height: 30px;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.editor-waypoint textarea {
+  width: 100%;
+  min-height: 80px;
+  max-height: 200px;
+  padding: 6px;
+  resize: none;
+  overflow: hidden;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+/* Botones */
+.editor-waypoint .botones {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.editor-waypoint .botones button {
+  padding: 4px 10px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editor-waypoint .botones button:first-child {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.editor-waypoint .botones button:nth-child(2) {
+  background-color: #ccc;
+}
+
+.editor-waypoint .botones button:last-child {
+  background-color: #f44336;
+  color: white;
+}
+
+/* ------------------------------------ */
+/*        CUADRO ROSA (Reservado)       */
+/* ------------------------------------ */
+
+/* Cuadro rosa: 2/3 del ancho restante */
+
+.editor-info {
+  flex: 1;
+  background-color: #ffeef4;
+  border: 2px dashed #e91e63;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 240px;
+  font-family: sans-serif;
+  box-sizing: border-box;
+}
+
+/* ------------------------------------ */
+/*     CONTENEDOR DE LOS DOS CUADROS    */
+/* ------------------------------------ */
+
+.editor-section {
+  display: flex;
+  width: 95vw;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0;
+  gap: 16px; /* Espacio entre los cuadros */
+  box-sizing: border-box;
 }
