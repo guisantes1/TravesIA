@@ -42,69 +42,10 @@
 
 .info-content {
   flex: 1;
+  height: 100%;               /* ← ocupa todo el alto de su contenedor */
+  overflow-y: auto;           /* ← solo esta zona puede hacer scroll */
   padding: 0px;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   background-color: rgba(128, 128, 128, 0.05);
-  width: 100%;
-}
-
-.opiniones-wrapper {
-  background-color: white;
-  border-radius: 0;
-  padding: 20px;
-  border: 1px solid #ddd;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  min-height: 0;
-  width: 100%;
-}
-
-.opiniones-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  position: relative;
-}
-
-.opiniones-header h3 {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  margin: 0;
-  font-size: 18px;
-  white-space: nowrap;
-}
-
-.opiniones-toolbar {
-  display: flex;
-  gap: 10px;
-}
-
-.opiniones-toolbar button {
-  font-size: 16px;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-
-.opinion-list {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.opinion-row {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 10px;
-  font-size: 14px;
-  display: flex;
-  flex-direction: column;
 }

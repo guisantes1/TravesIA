@@ -27,7 +27,7 @@ app.add_middleware(
 app.include_router(users.router, prefix="/api/users")
 app.include_router(rutas.router, prefix="/api")
 app.include_router(ubicaciones.router, prefix="/api")
-app.include_router(opiniones.router, prefix="/api", tags=["Opiniones"])
+app.include_router(opiniones.router, prefix="/api")
 
 
 

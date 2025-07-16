@@ -16,6 +16,8 @@ class User(Base):
     confirmation_token = Column(String, default=lambda: str(uuid.uuid4()))
 
     rutas = relationship("Ruta", back_populates="usuario")  # Relación con rutas
+    # ⬇️ Este campo falta seguramente
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Ruta(Base):

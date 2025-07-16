@@ -30,27 +30,30 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      {user && <Header user={user} setUser={setUser} />}
-
-      {!user ? (
-        <>
-          <Login setUser={handleSetUser} />
-          {!showRegister && (
-            <button
-              onClick={toggleRegister}
-              className="create-account-btn"
-            >
-              Crear una nueva cuenta
-            </button>
-          )}
-          {showRegister && <Register />}
-        </>
-      ) : (
-        <Home user={user} />
-      )}
+    <div className="main-scroll-wrapper">
+      <div className="app-container">
+        {user && <Header user={user} setUser={setUser} />}
+  
+        {!user ? (
+          <>
+            <Login setUser={handleSetUser} />
+            {!showRegister && (
+              <button
+                onClick={toggleRegister}
+                className="create-account-btn"
+              >
+                Crear una nueva cuenta
+              </button>
+            )}
+            {showRegister && <Register />}
+          </>
+        ) : (
+          <Home user={user} />
+        )}
+      </div>
     </div>
   );
+  
 }
 
 export default App;

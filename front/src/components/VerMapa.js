@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../styles/VerMapa/VerMapa.css';
 import '../styles/VerMapa/VerMapa-editor.css';
+import '../styles/VerMapa/VerMapa-opiniones.css';
 
 import fetchWaypointsFromOSM from './VerMapa_funciones/TraerWaypoints';
 import EditarWaypoint from './VerMapa_funciones/EditarWaypoint';
@@ -150,7 +151,8 @@ function VerMapa() {
 
       </div>
 
-        <MapContainer          
+        <MapContainer
+          center={[42.7511, -0.6668]}          
           zoom={13}
           scrollWheelZoom={true}                  
         >

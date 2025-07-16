@@ -1,14 +1,24 @@
+html, body, #root {
+    height: 100vh;
+    width: 100vw; /* ← OBLIGA al viewport a no sobrepasarse */
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+  
 .app-container {
-    width: 100vw;  /* ocupa toda la anchura de la ventana */
-    height: 100vh; /* ocupa toda la altura visible */
+    width: 100vw;
+    min-height: 100vh;
     display: flex;
-    background: white;
     box-sizing: border-box;
     padding: 20px;
     gap: 20px;
-    overflow: hidden; /* para evitar scroll horizontal */
+    overflow-x: hidden;    /* no scroll horizontal */
+    overflow-y: visible;   /* ← ¡esto es importante! */
+    flex-wrap: nowrap;
 }
-
+  
+  
 .sidebar {
     width: 220px;
     background: #eee;
@@ -47,18 +57,19 @@
 }
 
 .content {
-    flex-grow: 1;  /* ocupa todo el espacio restante */
+    flex-grow: 1;
     background-color: #cce6ff;
     border: 2px solid #d14797;
     border-radius: 6px;
     padding: 30px;
     box-sizing: border-box;
-
-    display: flex;
-    justify-content: center; /* centra horizontalmente */
-    align-items: center;     /* centra verticalmente */
-
-    /* Para que el contenido ocupe todo el espacio */
     width: 100%;
-    height: 100%;
+  
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;   /* <--- importante para que hijos crezcan */
+  
+    overflow-y: auto;       /* muestra scroll vertical si se necesita */
+    max-height: 100vh;      /* evita que crezca indefinidamente */
 }
+  
