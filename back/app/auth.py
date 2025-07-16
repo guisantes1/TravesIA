@@ -29,7 +29,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return encoded_jwt
 
 # Para obtener el usuario actual desde el token
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/login")  # O la ruta correcta de tu login
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login")
+
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)) -> models.User:
     credentials_exception = HTTPException(

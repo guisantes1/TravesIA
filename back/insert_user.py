@@ -11,9 +11,9 @@ db.query(User).filter(User.username == "demo").delete()
 
 # Crea el nuevo
 user = User(
-    email="demo@travesia.com",
+    email="demo@demo.com",
     username="demo",
-    full_name="Usuario Demo",
+    full_name="User Demo",
     hashed_password=get_password_hash("1234"),
     is_active=True,
     confirmation_token=None,

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 function EditarOpiniones({ waypoint }) {
   const [opiniones, setOpiniones] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [editandoOpinion, setEditandoOpinion] = useState(null);
+  const [usuarioActual, setUsuarioActual] = useState(null);
   const [nuevaOpinion, setNuevaOpinion] = useState({
     texto: '',
     fecha: '',
@@ -53,6 +55,9 @@ function EditarOpiniones({ waypoint }) {
   
   const convertirFotosABase64 = async (archivos) => {
     const promesas = archivos.map(file => {
+      // Si ya es string (base64 ya existente), simplemente lo devolvemos
+      if (typeof file === 'string') return Promise.resolve(file);
+  
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result);
@@ -63,6 +68,29 @@ function EditarOpiniones({ waypoint }) {
     return Promise.all(promesas);
   };
   
+  const handleEliminarOpinion = (id) => {
+    if (!window.confirm('¿Seguro que quieres eliminar esta opinión?')) return;
+  
+    const token = localStorage.getItem('token');
+  
+    fetch(`http://localhost:8000/api/opiniones/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then(async res => {
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.detail || 'Error al eliminar');
+        }
+        setOpiniones(opiniones.filter(op => op.id !== id));
+      })
+      .catch(err => {
+        console.error('❌ Error al eliminar la opinión:', err);
+        alert(`Error: ${err.message}`);
+      });
+  };
     
   
   const handleEnviarOpinion = async (e) => {
@@ -73,6 +101,7 @@ function EditarOpiniones({ waypoint }) {
     const fechaISO = new Date(fechaHora).toISOString();
   
     let fotosBase64 = [];
+  
     try {
       fotosBase64 = await convertirFotosABase64(nuevaOpinion.fotos);
     } catch (err) {
@@ -83,15 +112,18 @@ function EditarOpiniones({ waypoint }) {
     const payload = {
       ubicacion_id: waypoint.id,
       texto: nuevaOpinion.texto,
+      fecha: fechaISO,
       fotos: JSON.stringify(fotosBase64)
     };
   
-    console.log('📤 Enviando opinión...');
-    console.log('🧾 Payload:', payload);
-    console.log('🔑 Token:', token);
+    const url = editandoOpinion
+      ? `http://localhost:8000/api/opiniones/${editandoOpinion.id}`
+      : 'http://localhost:8000/api/opiniones';
   
-    fetch('http://localhost:8000/api/opiniones', {
-      method: 'POST',
+    const method = editandoOpinion ? 'PUT' : 'POST';
+  
+    fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
@@ -100,38 +132,75 @@ function EditarOpiniones({ waypoint }) {
     })
       .then(async res => {
         const data = await res.json();
-        console.log('📩 Respuesta del servidor:', res.status, data);
-  
         if (!res.ok) throw new Error(`${res.status} - ${data.detail || 'Error desconocido'}`);
         return data;
       })
       .then(data => {
-        console.log('✅ Opinión guardada con éxito:', data);
-        setOpiniones([...opiniones, data]);
-        setMostrarFormulario(false);
-        setNuevaOpinion({ texto: '', fecha: '', hora: '', fotos: [] });
+        if (editandoOpinion) {
+          setOpiniones(opiniones.map(op => op.id === data.id ? data : op));
+        } else {
+          setOpiniones([...opiniones, data]);
+        }
+        resetFormulario();
       })
       .catch(err => {
-        console.error('❌ Error enviando opinión:', err.message || err);
-        alert(`Error al enviar la opinión: ${err.message}`);
+        console.error('❌ Error al enviar/editar la opinión:', err);
+        alert(`Error: ${err.message}`);
       });
   };
   
+  const resetFormulario = () => {
+    setNuevaOpinion({ texto: '', fecha: '', hora: '', fotos: [] });
+    setEditandoOpinion(null);
+    setMostrarFormulario(false);
+  };
+
+  const iniciarEdicion = (opinion) => {
+    const fecha = new Date(opinion.fecha);
+    setNuevaOpinion({
+      texto: opinion.texto,
+      fecha: fecha.toISOString().slice(0, 10),
+      hora: fecha.toTimeString().slice(0, 5),
+      fotos: opinion.fotos ? JSON.parse(opinion.fotos) : []
+    });
+    setEditandoOpinion(opinion);
+    setMostrarFormulario(true);
+  };
+  
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('http://localhost:8000/api/users/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(res => res.json())
+        .then(data => {
+          console.log('🧑 Usuario actual:', data); // <--- AÑADE AQUÍ
+          setUsuarioActual(data);
+        })
+        .catch(err => {
+          console.warn("⚠️ No se pudo obtener el usuario actual:", err);
+          setUsuarioActual(null);
+        });
+    }
+  }, []);
   
   
   
   useEffect(() => {
     if (waypoint?.id) {
       console.log('📌 Waypoint recibido:', waypoint);
-
+  
       fetch(`http://localhost:8000/api/opiniones/${waypoint.id}`)
-
         .then(res => {
           console.log('🔄 Respuesta cruda del fetch:', res);
           return res.json();
         })
         .then(data => {
-          console.log('📥 Datos recibidos del backend:', data);
+          console.log('📥 Opiniones recibidas del backend:', data); // <--- AÑADE AQUÍ
+  
           if (Array.isArray(data)) {
             setOpiniones(data);
           } else {
@@ -142,6 +211,7 @@ function EditarOpiniones({ waypoint }) {
         .catch(err => console.error('❌ Error cargando opiniones:', err));
     }
   }, [waypoint]);
+  
 
   return (
     <div className="opiniones-wrapper">
@@ -150,23 +220,22 @@ function EditarOpiniones({ waypoint }) {
         <h3>Opiniones sobre {waypoint?.nombre || 'el punto'}</h3>
         <div className="opiniones-toolbar">
           <button title="Añadir opinión" onClick={() => setMostrarFormulario(!mostrarFormulario)}>➕</button>          
-          <button title="Eliminar opiniones">❌</button>
         </div>
       </div>
 
       {mostrarFormulario && (
         <div className="editor-opinion">
-          <h3>Afegir opinió</h3>
+          <h3>Añadir opinión</h3>
 
-          <label>Comentari</label>
+          <label>Comentario</label>
           <textarea
-            placeholder="Escriu la teva opinió..."
+            placeholder="Escriva su opinión..."
             value={nuevaOpinion.texto}
             onChange={(e) => setNuevaOpinion({ ...nuevaOpinion, texto: e.target.value })}
             required
           />
 
-          <label>Data</label>
+          <label>Fecha</label>
           <input
             type="date"
             value={nuevaOpinion.fecha || ''}
@@ -242,26 +311,49 @@ function EditarOpiniones({ waypoint }) {
         {opiniones.length === 0 ? (
           <p>No hay opiniones aún.</p>
         ) : (
-          opiniones.map((op) => (
-            <div key={op.id} className="opinion-row">
-              <div className="op-header">
-                <div className="nombre">{op.nombre_usuario || 'Anónimo'}</div>
-                <div className="fecha">
-                  {new Date(op.fecha).toLocaleDateString()} – {new Date(op.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          opiniones.map((op) => {
+            console.log(`👤 Comparando: usuarioActual.id = ${usuarioActual?.id}, op.usuario_id = ${op.usuario_id}`);
+          
+            return (
+              <div key={op.id} className="opinion-row">
+                <div className="op-header">
+                  <div className="nombre">{op.nombre_usuario || 'Anónimo'}</div>
+                  <div className="fecha">
+                    {new Date(op.fecha).toLocaleDateString()} – {new Date(op.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                  {String(usuarioActual?.id) === String(op.usuario_id) && (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => iniciarEdicion(op)}
+                        title="Editar opinión"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleEliminarOpinion(op.id)}
+                        title="Eliminar opinión"
+                        style={{ color: 'red' }}
+                      >
+                        ❌
+                      </button>
+                    </div>
+                  )}
+
                 </div>
+          
+                <div className="texto">{op.texto}</div>
+          
+                {op.fotos && (
+                  <div className="fotos">
+                    {JSON.parse(op.fotos).map((url, i) => (
+                      <img key={i} src={url} alt={`foto-${i}`} />
+                    ))}
+                  </div>
+                )}
               </div>
-
-              <div className="texto">{op.texto}</div>
-
-              {op.fotos && (
-                <div className="fotos">
-                  {JSON.parse(op.fotos).map((url, i) => (
-                    <img key={i} src={url} alt={`foto-${i}`} />
-                  ))}
-                </div>
-              )}
-            </div>
-          ))
+            );
+          })
+          
         )}
       </div>
     </div>

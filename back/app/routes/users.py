@@ -92,3 +92,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     print("✅ Login correcto")
     access_token = auth.create_access_token(data={"user_id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}
+
+from app.auth import get_current_user  # ya lo tienes importado si usas auth en otros puntos
+
+@router.get("/me", response_model=schemas.UserOut)
+def get_current_user_data(current_user: models.User = Depends(auth.get_current_user)):
+    return current_user

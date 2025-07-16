@@ -48,6 +48,11 @@ class OpinionOut(OpinionBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+class OpinionUpdate(BaseModel):
+    texto: str
+    fecha: str  # o datetime si lo estás manejando como datetime
+    fotos: Optional[str] = None  # Base64 en formato JSON
+
 # -------------------- UBICACIÓN --------------------
 
 class UbicacionBase(BaseModel):

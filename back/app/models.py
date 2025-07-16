@@ -46,16 +46,22 @@ class Ubicacion(Base):
     ruta = relationship("Ruta", back_populates="ubicaciones")
     opiniones = relationship("Opinion", back_populates="ubicacion", cascade="all, delete")
 
+
 class Opinion(Base):
     __tablename__ = 'opiniones'
+
     id = Column(Integer, primary_key=True, index=True)
-    ubicacion_id = Column(Integer, ForeignKey('ubicaciones.id'))
-    usuario_id = Column(Integer, ForeignKey('users.id'))  # ForeignKey para usuario
+
+    # 🔗 Foreign keys
+    ubicacion_id = Column(Integer, ForeignKey('ubicaciones.id'))  # Clave foránea a Ubicacion
+    usuario_id = Column(Integer, ForeignKey('users.id'))          # Clave foránea a User
+
+    # 🧾 Datos de la opinión
     nombre_usuario = Column(String)
     fecha = Column(DateTime, default=datetime.utcnow)
     texto = Column(String)
-    fotos = Column(String)  # JSON string con URLs
+    fotos = Column(String)  # JSON string (lista de imágenes en base64 o URLs)
 
-    ubicacion = relationship("Ubicacion", back_populates="opiniones")
-    usuario = relationship("User")  # Relación para acceder al usuario que hizo la opinión
-
+    # 🔁 Relaciones ORM
+    ubicacion = relationship("Ubicacion", back_populates="opiniones")  # Opinión ↔️ Ubicación
+    usuario = relationship("User")  # Opinión ↔️ Usuario (no necesitas back_populates a menos que lo uses desde el lado del usuario)
