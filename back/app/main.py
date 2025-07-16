@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import users, rutas, ubicaciones  # Añadido rutas
+from app.routes import users, rutas, ubicaciones, opiniones  # Añadido rutas
 from app.models import Base
 from app.database import engine
 
@@ -27,6 +27,8 @@ app.add_middleware(
 app.include_router(users.router, prefix="/api/users")
 app.include_router(rutas.router, prefix="/api")
 app.include_router(ubicaciones.router, prefix="/api")
+app.include_router(opiniones.router, prefix="/api", tags=["Opiniones"])
+
 
 
 @app.get("/")

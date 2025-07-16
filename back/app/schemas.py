@@ -34,10 +34,10 @@ class OpinionBase(BaseModel):
     fotos: Optional[str] = None
     fecha: Optional[datetime] = None
 
-class OpinionCreate(OpinionBase):
+class OpinionCreate(BaseModel):
     ubicacion_id: int
-    usuario_id: int
-    nombre_usuario: str
+    texto: str
+    fotos: Optional[str] = None
 
 class OpinionOut(OpinionBase):
     id: int
@@ -100,3 +100,4 @@ class RutaOut(RutaBase):
     ubicaciones: List[UbicacionOut] = []
 
     model_config = ConfigDict(from_attributes=True)
+

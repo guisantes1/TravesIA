@@ -1,3 +1,30 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* ← Previene scroll externo */
+}
+
+.popup-close-button {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  border: none;
+  background: white;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  color: red;
+  z-index: 1000;
+  width: 24px;
+  height: 24px;
+  line-height: 20px;
+  text-align: center;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+
 /* ------------------------------------ */
 /*            MAPA PRINCIPAL            */
 /* ------------------------------------ */
@@ -6,9 +33,8 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100%;
-  padding: 0 10px;
-  box-sizing: border-box;
+  height: 100vh;
+  overflow: hidden;  /* ← Evita scroll propio si no es necesario */
 }
 
 .map-title {
@@ -19,14 +45,20 @@
 
 .map-container {
   width: 100%;
-  max-width: 95vw;  
-  aspect-ratio: 16 / 9;
+  max-width: 95vw;
+  height: 65vh;
   margin: 0 auto;
   position: relative;
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: height 0.3s ease;
+}
+
+/* Reducción del mapa al editar */
+.modo-edicion .map-container {
+  height: 40vh;
 }
 
 .leaflet-container {
@@ -84,29 +116,38 @@
 .editor-contenedor {
   display: flex;
   width: 100%;
-  gap: 20px; /* margen entre los dos cuadros */
+  gap: 20px;
   padding: 20px;
   box-sizing: border-box;
+  flex-grow: 1;
+  align-items: flex-start;
+  flex-wrap: nowrap;         /* ← lo importante */
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: auto;
+  max-height: none;
 }
+
 
 
 /* ------------------------------------ */
 /*        CUADRO NEGRO (Editor)         */
 /* ------------------------------------ */
 
-/* Editor negro (1/3 del espacio) */
 .editor-waypoint {
   width: 33%;
   background-color: white;
   border: 2px solid #333;
   border-radius: 8px;
   padding: 12px;
-  min-height: 240px;
+  height: auto;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
   font-family: sans-serif;
   box-sizing: border-box;
 }
-
 
 .editor-waypoint h3 {
   margin-top: 0;
@@ -134,16 +175,17 @@
 }
 
 .editor-waypoint textarea {
+  display: block;
   width: 100%;
   min-height: 80px;
-  max-height: 200px;
   padding: 6px;
-  resize: none;
-  overflow: hidden;
+  resize: vertical;
+  overflow: auto;
   font-family: inherit;
   font-size: 14px;
   line-height: 1.4;
   box-sizing: border-box;
+  flex-grow: 1;
 }
 
 /* Botones */
@@ -173,35 +215,4 @@
 .editor-waypoint .botones button:last-child {
   background-color: #f44336;
   color: white;
-}
-
-/* ------------------------------------ */
-/*        CUADRO ROSA (Reservado)       */
-/* ------------------------------------ */
-
-/* Cuadro rosa: 2/3 del ancho restante */
-
-.editor-info {
-  flex: 1;
-  background-color: #ffeef4;
-  border: 2px dashed #e91e63;
-  border-radius: 8px;
-  padding: 12px;
-  min-height: 240px;
-  font-family: sans-serif;
-  box-sizing: border-box;
-}
-
-/* ------------------------------------ */
-/*     CONTENEDOR DE LOS DOS CUADROS    */
-/* ------------------------------------ */
-
-.editor-section {
-  display: flex;
-  width: 95vw;
-  max-width: 1200px;
-  margin: 20px auto;
-  padding: 0;
-  gap: 16px; /* Espacio entre los cuadros */
-  box-sizing: border-box;
 }

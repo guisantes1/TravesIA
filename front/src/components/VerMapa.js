@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, LayersControl, useMapEvents, us
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import '../styles/VerMapa/VerMapa.css';
+import '../styles/VerMapa/VerMapa-editor.css';
 
 import fetchWaypointsFromOSM from './VerMapa_funciones/TraerWaypoints';
 import EditarWaypoint from './VerMapa_funciones/EditarWaypoint';
@@ -13,6 +14,7 @@ import {
   guardarCambios
 } from './VerMapa_funciones/helpers';
 
+import EditarOpiniones from './VerMapa_funciones/EditarOpiniones.js'; // al principio del archivo
 
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -52,6 +54,7 @@ function VerMapa() {
   const [waypointSeleccionado, setWaypointSeleccionado] = useState(null);
   const [topLeft, setTopLeft] = useState([41.65, 1.75]);
   const [bottomRight, setBottomRight] = useState([41.55, 1.90]);
+  const [pestanaActiva, setPestanaActiva] = useState('opiniones');
   const mapRef = useRef();
 
   useEffect(() => {
@@ -120,7 +123,7 @@ function VerMapa() {
   };
   
   return (
-    <div className="map-wrapper">
+    <div className={`map-wrapper ${waypointSeleccionado ? 'modo-edicion' : ''}`}>
       <h2 className="map-title">Mapa general</h2>
 
       <div style={{ textAlign: 'center', marginBottom: '10px' }}>
@@ -147,11 +150,9 @@ function VerMapa() {
 
       </div>
 
-        <MapContainer
-          center={[41.6, 1.83]} // centro temporal
+        <MapContainer          
           zoom={13}
-          scrollWheelZoom={true}
-          style={{ height: '500px' }}          
+          scrollWheelZoom={true}                  
         >
           <CapturarMapa mapRef={mapRef} />  
           <LayersControl position="topright">
@@ -179,42 +180,129 @@ function VerMapa() {
 
           {waypoints.map((ubicacion) => (
             <Marker key={ubicacion.id} position={[ubicacion.lat, ubicacion.lon]}>
-            <Popup>
-              <div>
-                <strong>{ubicacion.nombre}</strong><br />
-                <button onClick={() => setWaypointSeleccionado(ubicacion)}>
-                  ✏️ Editar
-                </button>
-                <button
-                  onClick={() => {
-                    if (window.confirm(`¿Estás seguro de que quieres eliminar "${ubicacion.nombre}"?`)) {
-                      eliminarWaypoint(ubicacion.id, () => refrescarRuta0(setWaypoints), () => setWaypointSeleccionado(null));
-                    }
-                  }}
-                  style={{ marginLeft: '8px', color: 'red' }}
-                >
-                  ❌ Eliminar
-                </button>
+              <Popup closeButton={false}>
+                <div style={{ position: 'relative', minWidth: '160px', paddingTop: '10px' }}>
+                  {/* Botón ❌ personalizado arriba a la derecha, fuera del contenido */}
+                  <button
+                    onClick={() => {
+                      setWaypointSeleccionado(null);
+                      setTimeout(() => {
+                        if (mapRef.current) {
+                          mapRef.current.closePopup();
+                    
+                          // ⚠️ Forzar repaint y refresh de tiles con más garantías
+                          setTimeout(() => {
+                            mapRef.current.invalidateSize(true);
+                          }, 300); // espera pequeña para asegurar que el DOM ya ha cambiado
+                        }
+                      }, 300);
+                    }}
+                    className="popup-close-button"
+                    aria-label="Cerrar popup"
+                  >
+                    ×
+                  </button>
 
-              </div>
-            </Popup>
+                  {/* Contenido del popup */}
+                  <strong>{ubicacion.nombre}</strong><br />
+                  <button
+                    onClick={() => {
+                      setWaypointSeleccionado(ubicacion);
+                      setTimeout(() => {
+                        if (mapRef.current) {
+                          mapRef.current.invalidateSize();
+                          mapRef.current.setView([ubicacion.lat, ubicacion.lon], mapRef.current.getZoom(), {
+                            animate: true
+                          });
+                        }
+                      }, 300);
+                    }}
+                  >
+                    ✏️ Editar
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`¿Estás seguro de que quieres eliminar "${ubicacion.nombre}"?`)) {
+                        eliminarWaypoint(
+                          ubicacion.id,
+                          () => refrescarRuta0(setWaypoints),
+                          () => setWaypointSeleccionado(null)
+                        );
+                      }
+                    }}
+                    style={{ marginLeft: '8px', color: 'red' }}
+                  >
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </Popup>
+
+
             </Marker>
 
           ))}
         </MapContainer>
       </div>
-      <div className="editor-contenedor">
-        <EditarWaypoint
-          waypoint={waypointSeleccionado}
-          setWaypoint={setWaypointSeleccionado}
-          onSave={() => guardarCambios(waypointSeleccionado, () => refrescarRuta0(setWaypoints), () => setWaypointSeleccionado(null))}
-          onCancel={() => setWaypointSeleccionado(null)}
-          onDelete={(id) => eliminarWaypoint(id, () => refrescarRuta0(setWaypoints), () => setWaypointSeleccionado(null))}
-        />
-        <div className="editor-info">
-          {/* Aquí irá el contenido del cuadro rosa que nos dirás luego */}
+      {waypointSeleccionado && (
+        <div className="editor-contenedor">
+          <EditarWaypoint
+            waypoint={waypointSeleccionado}
+            setWaypoint={setWaypointSeleccionado}
+            onSave={() => guardarCambios(waypointSeleccionado, () => refrescarRuta0(setWaypoints), () => setWaypointSeleccionado(null))}
+            onCancel={() => {
+              setWaypointSeleccionado(null);
+              setTimeout(() => {
+                if (mapRef.current) {
+                  mapRef.current.invalidateSize();
+                }
+              }, 300);
+            }}
+            onDelete={(id) => {
+              eliminarWaypoint(id, () => refrescarRuta0(setWaypoints), () => {
+                setWaypointSeleccionado(null);
+                setTimeout(() => {
+                  if (mapRef.current) {
+                    mapRef.current.invalidateSize();
+                  }
+                }, 300);
+              });
+            }}
+          />
+          <div className="editor-info">
+            <div className="info-sidebar">
+              <button
+                onClick={() => setPestanaActiva('opiniones')}
+                style={{
+                  fontWeight: 'bold',
+                  backgroundColor: pestanaActiva === 'opiniones' ? '#333' : '',
+                  color: pestanaActiva === 'opiniones' ? 'white' : '',
+                }}
+              >
+                Opiniones
+              </button>
+              <button
+                onClick={() => setPestanaActiva('imagenes')}
+                style={{
+                  fontWeight: 'bold',
+                  backgroundColor: pestanaActiva === 'imagenes' ? '#333' : '',
+                  color: pestanaActiva === 'imagenes' ? 'white' : '',
+                }}
+              >
+                Imágenes
+              </button>
+            </div>
+
+            <div className="info-content" id="infoContent">
+              {pestanaActiva === 'opiniones' && (
+                <EditarOpiniones waypoint={waypointSeleccionado} />
+              )}
+              {pestanaActiva === 'imagenes' && <p>(Próximamente imágenes)</p>}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
 
     </div>
   );
